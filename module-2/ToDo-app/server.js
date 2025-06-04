@@ -23,10 +23,14 @@ Then __dirname will be:
     }
 ] */
 const server = http.createServer((req, res) => {
+    // console.log('req', req);
+    const url = new URL(req.url, `http://${req.headers.host}`)
+    const pathname = url.pathname;
+    // console.log('url', url);
     // console.log(req.url, req.method);
 
     // get all todos
-    if (req.url === '/todos' && req.method === 'GET') {
+    if (pathname === '/todos' && req.method === 'GET') {
         const data = fs.readFileSync(filepath, { encoding: "utf-8" })
         res.writeHead(200, {
             "content-type": "application/json",
@@ -43,14 +47,13 @@ const server = http.createServer((req, res) => {
         res.end(data)
 
         // post a todo
-    } else if (req.url === '/todos/create-todo' && req.method === 'POST') {
+    } else if (pathname === '/todo' && req.method === 'POST') {
         let data = ""
 
         // listening
         req.on("data", (chunk) => {
             data = data + chunk //data = chunk
         })
-
 
         // listening ends
         req.on("end", () => {
@@ -72,7 +75,60 @@ const server = http.createServer((req, res) => {
             res.end(JSON.stringify({ title, body, createdAt }, null, 2))
         })
 
-    } else {
+    } //get a single todo
+    else if (pathname == '/todo' && req.method === "GET") {
+        const title = url.searchParams.get("title")
+        // console.log(title);
+        // console.log(pathname, 'single todo');
+        const data = fs.readFileSync(filepath, { encoding: "utf-8" }); // Step 1: Read file as string
+        const parsedData = JSON.parse(data) // Step 2: Convert JSON string into JavaScript object/array
+        const todo = parsedData.find(todo => todo.title === title) // Step 3: Use JavaScript to search for matching todo
+        const stringifiedTodo = JSON.stringify(todo); // Step 4: Convert result back into a JSON string for the response
+        res.writeHead(200, {
+            "content-type": "application/json",
+        })
+        res.end(stringifiedTodo)
+    } //update todo
+    else if (pathname === '/todos/update-todo' && req.method === 'PATCH') {
+        const title = url.searchParams.get("title")
+        let data = ""
+
+        // listening
+        req.on("data", (chunk) => {
+            data = data + chunk //data = chunk
+        })
+
+        // listening ends
+        req.on("end", () => {
+            // console.log("data", data);
+            // const todo = JSON.parse(data)
+            // console.log("todo", todo);
+            const { body } = JSON.parse(data)
+            // console.log(title, body);
+
+            const allTodos = fs.readFileSync(filepath, { encoding: "utf-8" })
+            // console.log(allTodos);
+            const parsedAllTodos = JSON.parse(allTodos)
+            // console.log(parsedAllTodos);
+
+            const todoIndex = parsedAllTodos.findIndex(todo => todo.title === title)
+
+            parsedAllTodos[todoIndex].body = body
+            fs.writeFileSync(filepath, JSON.stringify(parsedAllTodos, null, 2), { encoding: "utf-8" }) //@param space — Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+            // console.log(JSON.stringify({ title, body, createdAt }, null, 2));
+            // console.log(JSON.stringify({ title, body, createdAt }));
+
+            res.end(JSON.stringify({ title, body, createdAt: parsedAllTodos[todoIndex].createdAt }, null, 2))
+        })
+    }
+    //delete todo
+    else if (pathname === '/todos/delete-todo' && req.method === 'DELETE') {
+        const title = url.searchParams.get('title')
+        const todoIndex = parsedAllTodos.findIndex(todo => todo.title === title)
+
+        // todo- write delete function
+    }
+    else {
         res.end('Route not found')
     }
 })
