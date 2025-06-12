@@ -23,7 +23,17 @@ app.use("/todos", todos_routes_1.todosRouter);
     data
   });
 }) */
-app.get("/", (req, res) => {
+app.get("/", (req, res, next) => {
+    // console.log({ req, res });
+    // res.send("welcome to todos app");
+    console.log('I am custom middleware');
+    console.log({
+        url: req.url,
+        method: req.method,
+        header: req.header
+    });
+    next();
+}, (req, res) => {
     // console.log({ req, res });
     res.send("welcome to todos app");
 });

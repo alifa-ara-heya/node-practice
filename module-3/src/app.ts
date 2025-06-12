@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from "express";
+import express, { Application, NextFunction, Request, Response } from "express";
 import { todosRouter } from "./app/todos/todos.routes";
 // import fs from 'fs';
 // import path from 'path';
@@ -26,7 +26,17 @@ app.use("/todos", todosRouter)
   });
 }) */
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (req: Request, res: Response, next: NextFunction) => {
+  // console.log({ req, res });
+  // res.send("welcome to todos app");
+  console.log('I am custom middleware');
+  console.log({
+    url: req.url,
+    method: req.method,
+    header: req.header
+  });
+  next();
+}, (req: Request, res: Response) => {
   // console.log({ req, res });
   res.send("welcome to todos app");
 });
