@@ -36,12 +36,44 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
     header: req.header
   });
   next();
-}, (req: Request, res: Response) => {
+}, async (req: Request, res: Response, next: NextFunction) => {
   // console.log({ req, res });
-  res.send("welcome to todos app");
+  try {
+    // console.log(something);
+    res.send("welcome to todos app");
+  } catch (error) {
+    next(error)
+  }
 });
 
+app.get('/error',
+  async (req: Request, res: Response, next: NextFunction) => {
+    // console.log(somehting);
 
+    try {
+      // console.log(something);
+      res.send("welcome to error er duniya");
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+
+// global error handling customization
+// sobar laste dite hobe
+
+// this middleware must be used after all other routes but before the global error handling
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.status(404).json({ message: 'Route not found' })
+})
+
+app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+  if (error) {
+    console.log("error", error);
+    res.status(400).json({ message: 'Something went wrong ,pookie', error })
+  }
+})
 /* app.get("/todos", (req: Request, res: Response) => {
   console.log("from query", req.query);
   console.log("from params", req.params);
